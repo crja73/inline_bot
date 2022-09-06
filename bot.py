@@ -54,7 +54,6 @@ async def adminka(message: types.Message):
 @dp.message_handler(Text(equals="Обратно в меню"))
 
 async def menu(message: types.Message):
-    print('yep')
     await message.answer("Меню", reply_markup=kb.inline_kb_full)
 
 
@@ -67,23 +66,58 @@ async def process_name(message: types.Message, state: FSMContext):
     
     async with state.proxy() as data:
         password = message.text
+        print('зашел')
     if password == 'admin':
-        await message.answer(o)
-        await Form.next()
+        orders = ''
+        for i in o:
+            orders += '{} - {}'.format(i[0], i[1])
+            orders += '\n'
+        try:
+            await message.answer(orders)
+        except:
+            await message.answer('Пусто, хуйланище')
+        
+        
+
+    com = message.text
+    if com == '/delete':
+        print('delete')
+
+    await Form.next()
+
+
+
+
 
 @dp.message_handler(state=Form.order)
 async def ordering(message: types.Message, state: FSMContext):
+
     global o
     async with state.proxy() as data:
         ordr = message.text
         
-    if len(list(ordr)) > 20:
+        if 'Обратно в меню' in ordr:
+            await message.answer('Меню', reply_markup=kb.inline_kb_full)
+            await Form.next()
 
-        ind = len(o) + 1
-        o.append([ind, ordr])
-        await message.answer('Ваш заказ принят. Ожидайте, в ближайшее время с вами свяжутся')
-        await bot.send_message('1017470547', '{} - {}'.format(o[-1][0], o[-1][1]))
-    await Form.next()
+        elif len(ordr.split()) < 10:
+            await message.answer('Слишком короткое тз, распишите подробнее')
+            
+           
+
+        elif len(ordr.split()) >= 10:
+            data['order'] = ordr
+            await message.answer('Ваш заказ принят. Ожидайте, в ближайшее время с вами свяжутся',
+                                 reply_markup=kb.inline_kb_full)
+            ind = len(o) + 1
+            o.append([ind, ordr])
+            
+            await Form.next()
+           
+
+            
+            
+            #await bot.send_message('2115781605', '{} - {}'.format(o[-1][0], o[-1][1]))
         
 
 
