@@ -9,6 +9,14 @@ from aiogram.dispatcher import FSMContext
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from config import TOKEN
 import keyboards as kb
+import datetime
+import sqlite3
+
+
+# conn = sqlite3.connect('data.db')
+# cur = conn.cursor()
+# cur.execute(f'INSERT INTO users VALUES("{message.from_user.id}", "@{message.from_user.username}")')
+# conn.commit()
 
 
 
@@ -18,8 +26,10 @@ dp = Dispatcher(bot, storage=MemoryStorage())
 o = []
 
 class Form(StatesGroup):
+    admin_login = State()
     admin = State()
     order = State()
+    deleting = State()
     
 
 @dp.callback_query_handler(text_startswith='btn')
@@ -30,8 +40,24 @@ async def process_callback_kb1btn1(callback_query: types.CallbackQuery):
     if code.isdigit():
         code = int(code)
     if code == 0:
-        await bot.send_message(callback_query.from_user.id, "Дайте точное описание вашему заказу, укажите желаемую стоимость проекта и срок, обязательно укажите свой тег telegram через '@', при необходимости свяжитесь с администратором", reply_markup=kb.greet_kb1)
+        await bot.send_message(callback_query.from_user.id, "Дайте точное описание вашему заказу, обязательно укажите желаемую стоимость проекта и дедлайн, при необходимости свяжитесь с администратором", reply_markup=kb.greet_kb1)
         await Form.order.set()
+    if code == 1:
+        try:
+            conn = sqlite3.connect('accounts.db')
+            cur = conn.cursor()
+            cur.execute(f'SELECT "order" FROM users WHERE user_id = "{callback_query.from_user.id}"')
+            result_bd = cur.fetchall()
+            if result_bd == []:
+                await bot.send_message(callback_query.from_user.id, "Ваш список заказов пуст")
+            else:
+                await bot.send_message(callback_query.from_user.id, '\n\n'.join(''.join(elems) for elems in result_bd))
+            
+        except Exception as e:
+            print(e)
+            await bot.send_message('1017470547', e)
+
+        
     if code == 4:
         await bot.send_message(callback_query.from_user.id, "Связаться напрямую -> @rolex0nmywrist")
         
@@ -42,13 +68,18 @@ async def process_callback_kb1btn1(callback_query: types.CallbackQuery):
 
 @dp.message_handler(commands=['start', 'menu'])
 async def process_start_command(message: types.Message):
-    await bot.send_message(message.from_user.id, "Меню", reply_markup=kb.inline_kb_full)
+    await bot.send_message(message.from_user.id, "Добро пожаловать!", reply_markup=kb.inline_kb_full)
 
 
 @dp.message_handler(commands=['admin'])
 async def adminka(message: types.Message):
     await message.answer('Обезьяна')
-    await Form.admin.set()
+    await Form.admin_login.set()
+
+@dp.message_handler(commands=['delete'])
+async def adminka(message: types.Message):
+    await Form.deleting.set()
+
 
 
 @dp.message_handler(Text(equals="Обратно в меню"))
@@ -57,36 +88,53 @@ async def menu(message: types.Message):
     await message.answer("Меню", reply_markup=kb.inline_kb_full)
 
 
+@dp.message_handler(state=Form.deleting)
+async def process_delete(message: types.Message, state: FSMContext):
+    try:
+        global o
+        numder = message.text
+        for i in range(int(numder)):
+            del o[0]
+        await message.answer('Заказы успешно удалены')
+        await state.finish()
+
+    except:
+        await message.answer('Неверный формат данных')
+        await state.finish()
 
 
 
-@dp.message_handler(state=Form.admin)
+
+
+@dp.message_handler(state=Form.admin_login)
 async def process_name(message: types.Message, state: FSMContext):
     
     
-    async with state.proxy() as data:
-        password = message.text
-        print('зашел')
-    if password == 'admin':
-        orders = ''
-        for i in o:
-            orders += '{} - {}'.format(i[0], i[1])
-            orders += '\n'
-        try:
-            await message.answer(orders)
-        except:
-            await message.answer('Пусто, хуйланище')
-        
+    password = message.text
+    print(password)
+    
+    if password != 'admin':
+        await message.answer('Долбаеб, ты печатать не умеешь')
+        return
+    await Form.admin.set()
+
         
 
-    com = message.text
-    if com == '/delete':
-        print('delete')
+@dp.message_handler(state=Form.admin)
+async def process_name_admin(message: types.Message, state: FSMContext):
+    print('хуй')
+    global o
+    orders = ''
+    for i in o:
+        orders += '{} ----> {}'.format(i[0], i[1])
+        orders += '\n'
+    try:
+        print('lol')
+        await message.answer(orders)
+    except:
+        await message.answer('Пусто, хуйланище')
 
-    await Form.next()
-
-
-
+    await state.finish()
 
 
 @dp.message_handler(state=Form.order)
@@ -98,7 +146,7 @@ async def ordering(message: types.Message, state: FSMContext):
         
         if 'Обратно в меню' in ordr:
             await message.answer('Меню', reply_markup=kb.inline_kb_full)
-            await Form.next()
+            await state.finish()
 
         elif len(ordr.split()) < 10:
             await message.answer('Слишком короткое тз, распишите подробнее')
@@ -110,9 +158,26 @@ async def ordering(message: types.Message, state: FSMContext):
             await message.answer('Ваш заказ принят. Ожидайте, в ближайшее время с вами свяжутся',
                                  reply_markup=kb.inline_kb_full)
             ind = len(o) + 1
-            o.append([ind, ordr])
+            username = message.from_user.username
+            now = datetime.datetime.now()
+            try:
+                info = str(now.strftime("%d.%m.%Y %H:%M")) + '   ' + '@' + username
+            except:
+                chat_id = message.chat.id
+                button_url = f'tg://openmessage?user_id={chat_id}'
+                info = str(now.strftime("%d.%m.%Y %H:%M")) + '   ' + button_url
+
+            o.append([info, data['order']])
+            try:
+                conn = sqlite3.connect('accounts.db')
+                cur = conn.cursor()
+                cur.execute(f'INSERT INTO users VALUES("{message.from_user.id}", "{ordr}")')
+                conn.commit()
+            except Exception as e:
+                print(e)
+                await bot.send_message('1017470547', e)
             
-            await Form.next()
+            await state.finish()
            
 
             
