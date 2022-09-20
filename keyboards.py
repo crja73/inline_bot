@@ -60,17 +60,17 @@ markup_big.insert(button6)
 markup_big.insert(KeyboardButton('9️⃣'))
 
 
-inline_btn_0 = InlineKeyboardButton('Сделать заказ', callback_data='btn0')
+inline_btn_0 = InlineKeyboardButton('⚙️Сделать заказ', callback_data='btn0')
 
 # inline_kb1 = InlineKeyboardMarkup().add(inline_btn_1)
 
 inline_kb_full = InlineKeyboardMarkup(row_width=2).add(inline_btn_0)
 
-inline_btn_0_1 = InlineKeyboardButton('Мои заказы', callback_data='btn0_1')
+inline_btn_0_1 = InlineKeyboardButton('📖Мои заказы', callback_data='btn0_1')
 inline_kb_full.add(inline_btn_0_1)
 
-inline_btn_3 = InlineKeyboardButton('Отзывы', callback_data='btn3')
-inline_btn_4 = InlineKeyboardButton('Контакты', callback_data='btn4')
+inline_btn_3 = InlineKeyboardButton('✏️Отзывы', callback_data='btn3')
+inline_btn_4 = InlineKeyboardButton('☎️Контакты', callback_data='btn4')
 
 
 inline_kb_full.add(inline_btn_3, inline_btn_4)
