@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from aiogram import Bot, types
 from aiogram.utils import executor
 from aiogram.utils.markdown import text
@@ -22,7 +23,7 @@ import datetime
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot, storage=MemoryStorage())
-
+lang = 'rus'
 o = []
 
 class Form(StatesGroup):
@@ -33,21 +34,28 @@ class Form(StatesGroup):
     date = State()
     price = State()
     lzt_link = State()
+    social = State()
+    urgency = State()
     
 
 @dp.callback_query_handler(text_startswith='btn')
 async def process_callback_kb1btn1(callback_query: types.CallbackQuery):
-    code = callback_query.data[-1]
-    
-    if code.isdigit():
-        code = int(code)
-        print(code)
-    if code == 0:
-        await bot.send_message(callback_query.from_user.id, "🕓Введите желаемый срок выполнения зказа", reply_markup=kb.greet_kb1)
+    global lang
+    code = callback_query.data
+    print(code)
+    if code == 'btn0':
+        await bot.send_message(callback_query.from_user.id, "🕓Введите желаемый срок выполнения зказа")
         await Form.date.set()
-    if code == 1:
+    if code == 'btn1':
         try:
-            username = callback_query.from_user.username
+            
+            try:
+                username = callback_query.from_user.username
+                if username == 'None':
+                    username = callback_query.from_user.id
+            except:
+                username = callback_query.from_user.id
+
             f = open('orders01.txt', 'r')
             f_m = ''.join(f.readlines())
             f_spis = f_m.split('------')
@@ -59,45 +67,78 @@ async def process_callback_kb1btn1(callback_query: types.CallbackQuery):
                         await bot.send_message(callback_query.from_user.id, h)
             else:
                 await bot.send_message(callback_query.from_user.id, "❌У вас еще не было заказов")
+                
+            await bot.send_message(callback_query.from_user.id, "Меню", reply_markup=kb.inline_kb_full)
 
-    #        conn = sqlite3.connect('accounts.db')
-    #         cur = conn.cursor()
-    #         cur.execute(f'SELECT "order", "status", "comments" FROM users WHERE user_id = "{callback_query.from_user.id}"')
-    #         result_bd = cur.fetchall()
-    #         if result_bd == []:
-    #             await bot.send_message(callback_query.from_user.id, "❌Ваш список заказов пуст")
-    #         else:
-    #             for i in range(len(result_bd)):
-    #                 print(result_bd)
-    #                 new = ''.join(result_bd[i][0])
-    #                 new_2 = new.split(', ')
-    #                 stat = ' ' + result_bd[i][1]
-    #                 comm = result_bd[i][2]
-
-                    
-    #                 await bot.send_message(callback_query.from_user.id, '№{}   {}'.format(i + 1, '\n\n'.join(new_2) + '\n\n' + '♻️Статус: ' + stat + '\n\n' + '📝Комментарии: ' + comm))
-                          
-           
-            #     await bot.send_message(callback_query.from_user.id, '\n\n\n'.join('🔸' + ''.join(elems) for elems in result_bd))
             
         except Exception as e:
             print(e)
             await bot.send_message('1017470547', e)
 
         
-    if code == 4:
-        await bot.send_message(callback_query.from_user.id, "📞Связаться напрямую -> @rolex0nmywrist")
+    if code == 'btn3':
+        await bot.send_message(callback_query.from_user.id, "📞Связаться напрямую -> t.me/use_digital")
         
-    if code == 3:
-        await bot.send_message(callback_query.from_user.id, "https://lolz.guru/threads/3933835/")
-    if code == 5:
-        await bot.send_message(message.from_user.id, "Меню", reply_markup=kb.inline_kb_full)
+    if code == 'btn2':
+        await bot.send_message(callback_query.from_user.id, "t.me/studio_digital")
+    # if code == 'btn5':
+    #     if lang == 'rus':
+    #         await bot.send_message(callback_query.from_user.id, "Меню", reply_markup=kb.inline_kb_full)
+    #     else:
+    #         await bot.send_message(callback_query.from_user.id, "Menu", reply_markup=kb.inline_kb_full_en)
+
+    if code == 'btn_lang_ru':
+        await bot.send_message(callback_query.from_user.id, "Menu", reply_markup=kb.inline_kb_full_en)
+        lang = 'eng'
+
+    if code == 'btn0_en':
+        await bot.send_message(callback_query.from_user.id, "🕓 Enter the desired lead time")
+        await Form.date.set()
+    if code == 'btn1_en':
+        try:
+            try:
+                username = callback_query.from_user.username
+                if username == 'None':
+                    username = callback_query.from_user.id
+            except:
+                username = callback_query.from_user.id
+            f = open('orders01.txt', 'r')
+            f_m = ''.join(f.readlines())
+            f_spis = f_m.split('------')
+            print(f_spis)
+            if f_spis != ['']:
+
+                for h in f_spis:
+                    if username in h:
+                        await bot.send_message(callback_query.from_user.id, h)
+            else:
+                await bot.send_message(callback_query.from_user.id, "❌You haven't had any orders yet")
+                
+            await bot.send_message(callback_query.from_user.id, "Menu", reply_markup=kb.inline_kb_full_en)
+
+        except Exception as e:
+            print(e)
+            await bot.send_message('1017470547', e)
+
+        
+    if code == 'btn3_en':
+        await bot.send_message(callback_query.from_user.id, "📞Contact us -> t.me/use_digital")
+        
+    if code == 'btn2_en':
+        await bot.send_message(callback_query.from_user.id, "t.me/studio_digital")
+
+    if code == 'btn_lang_en':
+        await bot.send_message(callback_query.from_user.id, "Меню", reply_markup=kb.inline_kb_full)
+        lang = 'rus'
+
 
 
 
 @dp.message_handler(commands=['start', 'menu'])
 async def process_start_command(message: types.Message):
-    await bot.send_message(message.from_user.id, "🤟Добро пожаловать", reply_markup=kb.inline_kb_full)
+    await bot.send_message(message.from_user.id, "🤟Добро пожаловать. В данный момент бот находится на стадии разработки и тестирования, в случае некорректной работы бота пишите напрямую -> t.me/use_digital", reply_markup=kb.inline_kb_full)
+    global lang
+    lang = 'rus'
 
 
 @dp.message_handler(commands=['killniggers'])
@@ -155,32 +196,6 @@ async def process_name(message: types.Message, state: FSMContext):
         await state.finish()
 
 
-        
-
-# @dp.message_handler(state=Form.admin)
-# async def process_name_admin(message: types.Message, state: FSMContext):
-#     f = open('orders01.txt', 'r')
-#     f_l = ''.join(f.readlines())
-#     await message.answer(f_l)
-    
-#     # print('хуй')
-#     # conn = sqlite3.connect('accounts.db')
-#     # cur = conn.cursor()
-#     # cur.execute(f'SELECT "order", "status", "comments" FROM users')
-#     # result_bd = cur.fetchall()
-#     # if result_bd == []:
-#     #     await bot.send_message(callback_query.from_user.id, "❌Ваш список заказов пуст")
-#     # else:
-#     #     for i in range(len(result_bd)):
-#     #         print(result_bd)
-#     #         new = ''.join(result_bd[i][0])
-#     #         new_2 = new.split(', ')
-#     #         stat = ' ' + result_bd[i][1]
-#     #         comm = result_bd[i][2]       
-#     #         await message.answer('№{}   {}'.format(i + 1, '\n\n'.join(new_2) + '\n\n' + '♻️Статус: ' + stat + '\n\n' + '📝Комментарии: ' + comm))
-
-#     await state.finish()
-
 
 @dp.message_handler(state=Form.date)
 async def process_date(message: types.Message, state: FSMContext):
@@ -188,14 +203,26 @@ async def process_date(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
             data['date'] = message.text
             print(data['date'])
-            if data['date'] == 'Обратно в меню':
-                await message.answer('Меню', reply_markup=kb.inline_kb_full)
-                await state.finish()
+            if data['date'] == 'Обратно в меню':   
+                if lang == 'rus':
+                    await state.finish()
+                    
+                else:
+                    
+                    await message.answer('Menu', reply_markup=kb.inline_kb_full_en)
+                    await state.finish()
+
+                
             else:
-                await message.answer('💰Введите бюджет')
-                await Form.price.set()
+                if lang == 'rus':
+                    await message.answer('💰Введите бюджет')
+                else:
+                    await message.answer('💰Specify your desired budget')
+
+                
     except Exception as e:
         await bot.send_message('1017470547', e)
+    await Form.price.set()
 
 
 
@@ -210,10 +237,14 @@ async def process_price(message: types.Message, state: FSMContext):
                 await message.answer('Меню', reply_markup=kb.inline_kb_full)
                 await state.finish()
             else:
-                await message.answer('Укажите ваш профиль на Lolz.guru, если его нет, то потсавьте -')
-                await Form.lzt_link.set()
+                if lang == 'rus':
+                    await message.answer('📞 Укажите ссылку на социальную сеть(username) или номер телефона, чтобы исполнитель смог с вами связаться, обсудить детали и передать ваш заказ')
+                else:
+                    await message.answer('📞 Specify how we can contact you to discuss the terms of the order(link, username)')
+                
     except Exception as e:
         await bot.send_message('1017470547', e)
+    await Form.lzt_link.set()
 
 @dp.message_handler(state=Form.lzt_link)
 async def process_lzt(message: types.Message, state: FSMContext):
@@ -226,12 +257,35 @@ async def process_lzt(message: types.Message, state: FSMContext):
                 await message.answer('Меню', reply_markup=kb.inline_kb_full)
                 await state.finish()
             else:
+                if lang == 'rus':
 
-                await message.answer('✍️Подробно опишите ваш заказ')
-                await Form.order.set()
+                    await message.answer('❗️ Оцените срочность проекта от 1 до 3')
+                else:
+                    await message.answer('❗️ Rate the urgency of the project from 1 to 3 points')
+                
     except Exception as e:
         await bot.send_message('1017470547', e)
+    await Form.urgency.set()
 
+@dp.message_handler(state=Form.urgency)
+async def process_lzt(message: types.Message, state: FSMContext):
+    try:
+        async with state.proxy() as data:
+            
+            data['urg'] = message.text
+            print(data['urg'])
+            if data['urg'] == 'Обратно в меню':
+                await message.answer('Меню', reply_markup=kb.inline_kb_full)
+                await state.finish()
+            else:
+                if lang == 'rus':
+                    await message.answer('✍️ Подробно опишите ваш заказ')
+                else:
+                    await message.answer('✍️ Describe your order in detail')
+                
+    except Exception as e:
+        await bot.send_message('1017470547', e)
+    await Form.order.set()
 
 
 @dp.message_handler(state=Form.order)
@@ -247,14 +301,22 @@ async def ordering(message: types.Message, state: FSMContext):
                 await state.finish()
 
             elif len(ordr.split()) < 10:
-                await message.answer('Слишком короткое тз, распишите подробнее')
+                if lang == 'rus':
+                    await message.answer('Описание проекта должно составлять не менее 10 слов')
+                else:
+                    await message.answer('Description of the project must be at least 10 words')
+                return
                 
                
 
             elif len(ordr.split()) >= 10:
                 data['order'] = ordr
-                await message.answer('✅ Ваш заказ принят. Ожидайте, в ближайшее время с вами свяжутся',
-                                     reply_markup=kb.inline_kb_full)
+                if lang == 'rus':
+
+                    await message.answer('✅ Ваш заказ принят. Ожидайте, в ближайшее время с вами свяжутся', reply_markup=kb.inline_kb_full)
+                else:
+                    await message.answer('✅ Your order is accepted. Wait, you will be contacted shortly', reply_markup=kb.inline_kb_full_en)
+
                 ind = len(o) + 1
                 
                 now = datetime.datetime.now()
@@ -266,24 +328,76 @@ async def ordering(message: types.Message, state: FSMContext):
                     button_url = f'tg://openmessage?user_id={chat_id}'
                     info = str(now.strftime("%d.%m.%Y %H:%M")) + '   ' + button_url
 
+                name = message.from_user.username
                 try:
-                    name = message.from_user.username
+                    if name == 'None':
+                        name = message.from_user.id
                 except:
-                    name = message.from_user.url
+                    name = message.from_user.id
+                try:
+                    
+                    if int(data['urg']) == 1:
+                        urgen = 'Не срочно'
+                        urgen_en = 'Do not rush'
+                    elif int(data['urg']) == 2:
+                        urgen = 'Средняя срочность'
+                        urgen_en = 'Medium urgency'
+                    elif int(data['urg']) >= 3:
+                        urgen = 'Срочно'
+                        urgen_en = 'Urgently'
+                    else:
+                        urgen = 'Не срочно'
+                        urgen_en = 'Do not rush'
+                except:
+                    urgen = 'Средняя срочность'
+                    urgen_en = 'Medium urgency'
 
-                full_order = 'Дата и время:  {}👤 Пользователь:  {}\n⏱  Срок:  {}\n💰  Бюджет:  {}\nСсылка на Lolz:  {}\n🗒  ТЗ:  '.format(str(now.strftime("%d.%m.%Y %H:%M")), name, data['date'], data['price'], data['lolz']) + data['order']
+                full_order = 'Дата и время:  {}👤 Пользователь:  {}\n⏱  Срок:  {}\n💰  Бюджет:  {}\nСрочность: {}\nПисать сюда->:  {}\n🗒  ТЗ:  '.format(str(now.strftime("%d.%m.%Y %H:%M")), name, data['date'], data['price'], urgen, data['lolz']) + data['order']
                 o.append([info, full_order])
-                await bot.send_message('1017470547', full_order)
-                await bot.send_message('2115781605', full_order)
-                full_order2 = 'Пользователь:  {}\nСрок:  {}\nБюджет:  {}\nСсылка на Lolz:  {}\nТЗ:  '.format(name, data['date'], data['price'], data['lolz']) + data['order']
+                try:
+                    await bot.send_message('1017470547', full_order)
+                    await bot.send_message('-1001827951943', full_order)
+                except Exception as e:
+                    await bot.send_message('1017470547', e)
+                    await bot.send_message('1017470547', 'Какая то хуйня с чатом, вот заказ:')
+                    await bot.send_message('1017470547', full_order)
+
+                if lang == 'rus':
+                    full_order2 = 'Пользователь:  {}\nСрок:  {}\nБюджет:  {}\nСрочность: {}\nПисать сюда->:  {}\nТЗ:  '.format(name, data['date'], data['price'], urgen, data['lolz']) + data['order']
+                else:
+                    full_order2 = 'User:  {}\nDeadline:  {}\nBudget:  {}\nUrgency: {}\nHow do I want to be contated->:  {}\nТЗ:  '.format(name, data['date'], data['price'], urgen_en, data['lolz']) + data['order']
                 f = open('orders01.txt', 'a')
                 f.write(full_order2 + '\n')
                 f.write("------"+'\n')
+
     except Exception as e:
-        full_order = 'Дата и время:  {}👤 Пользователь:  {}\n⏱  Срок:  {}\n💰  Бюджет:  {}\nСсылка на Lolz:  {}\n🗒  ТЗ:  '.format(str(now.strftime("%d.%m.%Y %H:%M")), name, data['date'], data['price'], data['lolz']) + data['order']
+        try:
+                    
+            if int(data['urg']) == 1:
+                urgen = 'Не срочно'
+                urgen_en = 'Do not rush'
+
+            elif int(data['urg']) == 2:
+                urgen = 'Средняя срочность'
+                urgen_en = 'Medium urgency'
+            elif int(data['urg']) >= 3:
+                urgen = 'Срочно'
+                urgen_en = 'Urgently'
+            else:
+                urgen = 'Не срочно'
+                urgen_en = 'Do not rush'
+        except:
+            urgen = 'Средняя срочность'
+            urgen_en = 'Medium urgency'
+
+        full_order = 'Дата и время:  {}👤 Пользователь:  {}\n⏱  Срок:  {}\n💰  Бюджет:  {}\nСрочность: {}\nПисать сюда->:  {}\n🗒  ТЗ:  '.format(str(now.strftime("%d.%m.%Y %H:%M")), name, data['date'], data['price'], urgen, data['lolz']) + data['order']
         o.append([info, full_order])
         await bot.send_message('1017470547', full_order)
-        full_order2 = 'Пользователь:  {}\nСрок:  {}\nБюджет:  {}\nСсылка на Lolz:  {}\nТЗ:  '.format(name, data['date'], data['price'], data['lolz']) + data['order']
+        await bot.send_message('-1001827951943', full_order)
+        if lang == 'rus':
+            full_order2 = 'Пользователь:  {}\nСрок:  {}\nБюджет:  {}\n Срочность: {}\n Писать сюда->:  {}\nТЗ:  '.format(name, data['date'], data['price'], urgen, data['lolz']) + data['order']
+        else:
+            full_order2 = 'User:  {}\nDeadline:  {}\nBudget:  {}\nUrgency: {}\nHow do I want to be contated->:  {}\nТЗ:  '.format(name, data['date'], data['price'], urgen_en, data['lolz']) + data['order']
         f = open('orders01.txt', 'a')
         f.write(full_order2 + '\n')
         f.write("------"+'\n')
@@ -299,17 +413,8 @@ async def ordering(message: types.Message, state: FSMContext):
             #     conn.commit()
             # except Exception as e:
             #     print(e)
-                
-            
-    
            
-
-            
-            
             #await bot.send_message('2115781605', '{} - {}'.format(o[-1][0], o[-1][1]))
-        
-
-
 
 # @dp.callback_query_handler(text="back_menu")
 # async def call_main_menu(call: CallbackQuery):
@@ -321,11 +426,6 @@ async def ordering(message: types.Message, state: FSMContext):
 #     await message.reply("Шестое - запрашиваем контакт и геолокацию\n"
 #                         "Эти две кнопки не зависят друг от друга",
 #                         reply_markup=kb.markup_request)
-
-
-
-
-
 
 if __name__ == '__main__':
     executor.start_polling(dp)
