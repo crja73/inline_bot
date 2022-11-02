@@ -63,16 +63,17 @@ async def process_callback_kb1btn1(callback_query: types.CallbackQuery):
                 for h in f_spis:
                     if username in h:
                         order_list.append(h)
-                button_list = [InlineKeyboardButton(text=order_list.index(x) + 1, callback_data=f'order_{order_list.index(x) + 1}') for x in order_list]
+                button_list = [InlineKeyboardButton(text=order_list.index(x) + 1, callback_data=f'btn_order_{order_list.index(x) + 1}') for x in order_list]
                 orders_kb = InlineKeyboardMarkup(row_width=1).add(*button_list)
                 await bot.send_message(callback_query.from_user.id, 'Все ваши заказы:', reply_markup=orders_kb)
                 
 
             else:
                 await bot.send_message(callback_query.from_user.id, "❌У вас еще не было заказов")
-                
-            await bot.send_message(callback_query.from_user.id, "Меню", reply_markup=kb.inline_kb_full)
 
+            #
+            #await bot.send_message(callback_query.from_user.id, "Меню", reply_markup=kb.inline_kb_full)
+            #
             
         except Exception as e:
             print(e)
@@ -133,6 +134,14 @@ async def process_callback_kb1btn1(callback_query: types.CallbackQuery):
     if code == 'btn_lang_en':
         await bot.send_message(callback_query.from_user.id, "Меню", reply_markup=kb.inline_kb_full)
         lang = 'rus'
+
+    if 'btn_order_' in code:
+        f = open('orders01.txt', 'r')
+        f_m = ''.join(f.readlines())
+        f_spis = f_m.split('------')
+        print(f_spis)
+        if f_spis != ['']:
+                await bot.send_message(callback_query.from_user.id, f_spis[int(callback_query.data[10:]) - 1])
 
 
 
@@ -407,28 +416,6 @@ async def ordering(message: types.Message, state: FSMContext):
         await bot.send_message('1017470547', e)
     await state.finish()
                 
-            # try:
-            #     conn = sqlite3.connect('accounts.db')
-            #     cur = conn.cursor()
-            #     processing = 'В обработке'
-            #     comment = 'нет'
-            #     cur.execute(f'INSERT INTO users VALUES("{message.from_user.id}", "{full_order}", "{processing}", "{comment}")')
-            #     conn.commit()
-            # except Exception as e:
-            #     print(e)
-           
-            #await bot.send_message('2115781605', '{} - {}'.format(o[-1][0], o[-1][1]))
-
-# @dp.callback_query_handler(text="back_menu")
-# async def call_main_menu(call: CallbackQuery):
-#     await bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
-
-
-# @dp.message_handler(commands=['hi6'])
-# async def process_hi6_command(message: types.Message):
-#     await message.reply("Шестое - запрашиваем контакт и геолокацию\n"
-#                         "Эти две кнопки не зависят друг от друга",
-#                         reply_markup=kb.markup_request)
 
 if __name__ == '__main__':
     executor.start_polling(dp)
